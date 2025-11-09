@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Secure Payment - BillFlow</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              700: '#0369a1',
+            }
+          },
+          animation: {
+            'fade-in': 'fadeIn 0.5s ease-in-out',
+            'slide-up': 'slideUp 0.4s ease-out',
+            'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+          },
+          keyframes: {
+            fadeIn: {
+              '0%': { opacity: '0' },
+              '100%': { opacity: '1' }
+            },
+            slideUp: {
+              '0%': { transform: 'translateY(20px)', opacity: '0' },
+              '100%': { transform: 'translateY(0)', opacity: '1' }
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      min-height: 100vh;
+    }
+    .glass-effect {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .gradient-border {
+      position: relative;
+      border-radius: 12px;
+      padding: 2px;
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6, #ec4899);
+    }
+    .gradient-border-content {
+      background: #1e293b;
+      border-radius: 10px;
+      padding: 1.5rem;
+    }
+    .input-focus:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    .payment-success {
+      background: linear-gradient(135deg, #10b981, #059669);
+    }
+    .card-number-format {
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.1em;
+    }
+    .secure-badge {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    }
+  </style>
+</head>
+<body class="antialiased">
+  <div class="glass-effect border-b border-gray-700/50">
+    <div class="max-w-6xl mx-auto px-6 py-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+          </div>
+          <div>
+            <h1 class="text-xl font-bold text-white">BillFlow</h1>
+            <p class="text-xs text-gray-400">Secure Payment Portal</p>
+          </div>
+        </div>
+        <div class="secure-badge px-4 py-2 rounded-full text-white text-sm font-medium flex items-center gap-2 shadow-lg">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+          </svg>
+          Secure Payment
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="max-w-6xl mx-auto px-6 py-8">
+    <div id="loading" class="animate-fade-in">
+      <div class="glass-effect rounded-2xl p-12 text-center">
+        <div class="inline-block relative">
+          <div class="w-16 h-16 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin"></div>
+          <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+            <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+            </svg>
+          </div>
+        </div>
+        <p class="text-gray-300 mt-6 text-lg font-medium">Securing your payment...</p>
+        <p class="text-gray-500 text-sm mt-2">Please wait while we verify your invoice</p>
+      </div>
+    </div>
+
+    <div id="error" class="hidden animate-fade-in">
+      <div class="glass-effect rounded-2xl p-12 text-center border-red-500/30">
+        <div class="w-20 h-20 rounded-full bg-red-500/10 mx-auto flex items-center justify-center mb-6">
+          <svg class="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </div>
+        <h2 class="text-2xl font-bold text-white mb-3">Unable to Load Invoice</h2>
+        <p class="text-gray-400 text-lg" id="error-message"></p>
+      </div>
+    </div>
+
+    <div id="success" class="hidden animate-fade-in">
+      <div class="glass-effect rounded-2xl p-12 text-center">
+        <div class="w-24 h-24 rounded-full payment-success mx-auto flex items-center justify-center mb-6 shadow-2xl animate-pulse-slow">
+          <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+          </svg>
+        </div>
+        <h2 class="text-3xl font-bold text-white mb-3">Payment Successful!</h2>
+        <p class="text-gray-300 text-lg mb-2">Your payment has been processed securely</p>
+        <p class="text-gray-400 mb-8">Transaction ID: <span id="transaction-id" class="font-mono text-blue-400"></span></p>
+
+        <div class="max-w-md mx-auto space-y-4">
+          <div class="glass-effect rounded-xl p-6 border-green-500/30">
+            <div class="flex justify-between items-center mb-3">
+              <span class="text-gray-400">Amount Paid</span>
+              <span class="text-2xl font-bold text-green-400" id="paid-amount"></span>
+            </div>
+            <div class="flex justify-between items-center text-sm">
+              <span class="text-gray-500">Payment Method</span>
+              <span class="text-gray-300 font-medium" id="payment-method-display"></span>
+            </div>
+          </div>
+
+          <div id="remaining-balance" class="hidden glass-effect rounded-xl p-6 border-orange-500/30">
+            <div class="flex justify-between items-center">
+              <span class="text-gray-400">Remaining Balance</span>
+              <span class="text-xl font-bold text-orange-400" id="remaining-amount"></span>
+            </div>
+          </div>
+        </div>
+
+        <button onclick="window.print()" class="mt-8 px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-all transform hover:scale-105 shadow-lg">
+          Print Receipt
+        </button>
+      </div>
+    </div>
+
+    <div id="content" class="hidden animate-slide-up">
+      <div class="grid lg:grid-cols-5 gap-8">
+        <div class="lg:col-span-2 space-y-6">
+          <div class="glass-effect rounded-2xl p-6">
+            <div class="flex items-center justify-between mb-6">
+              <h2 class="text-xl font-bold text-white">Invoice Details</h2>
+              <span id="status-badge" class="px-3 py-1 rounded-full text-sm font-medium"></span>
+            </div>
+
+            <div class="space-y-4">
+              <div>
+                <p class="text-gray-400 text-sm mb-1">Invoice Number</p>
+                <p class="text-white font-bold text-lg" id="invoice-number"></p>
+              </div>
+
+              <div class="border-t border-gray-700 pt-4">
+                <p class="text-gray-400 text-sm mb-1">Bill To</p>
+                <p class="text-white font-semibold" id="customer-name"></p>
+                <p class="text-gray-400 text-sm" id="customer-email"></p>
+              </div>
+
+              <div class="grid grid-cols-2 gap-4 border-t border-gray-700 pt-4">
+                <div>
+                  <p class="text-gray-400 text-sm mb-1">Issue Date</p>
+                  <p class="text-white font-medium" id="invoice-date"></p>
+                </div>
+                <div>
+                  <p class="text-gray-400 text-sm mb-1">Due Date</p>
+                  <p class="text-white font-medium" id="due-date"></p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="items-section" class="glass-effect rounded-2xl p-6 hidden">
+            <h3 class="text-lg font-bold text-white mb-4">Invoice Items</h3>
+            <div class="space-y-3" id="items-list"></div>
+          </div>
+
+          <div class="gradient-border">
+            <div class="gradient-border-content">
+              <div class="space-y-3">
+                <div class="flex justify-between text-gray-400">
+                  <span>Subtotal</span>
+                  <span id="subtotal" class="font-medium"></span>
+                </div>
+                <div class="flex justify-between text-gray-400">
+                  <span>Tax</span>
+                  <span id="tax" class="font-medium"></span>
+                </div>
+                <div class="border-t border-gray-700 pt-3 flex justify-between items-center">
+                  <span class="text-white font-semibold text-lg">Total Amount</span>
+                  <span id="total" class="text-2xl font-bold text-blue-400"></span>
+                </div>
+                <div id="paid-section" class="hidden border-t border-gray-700 pt-3">
+                  <div class="flex justify-between text-green-400 mb-2">
+                    <span>Paid</span>
+                    <span id="paid" class="font-semibold"></span>
+                  </div>
+                  <div class="flex justify-between items-center">
+                    <span class="text-white font-semibold">Amount Due</span>
+                    <span id="due" class="text-xl font-bold text-orange-400"></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="glass-effect rounded-xl p-4">
+            <div class="flex items-center justify-around text-center">
+              <div>
+                <svg class="w-8 h-8 text-green-400 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                </svg>
+                <p class="text-xs text-gray-400">SSL Secured</p>
+              </div>
+              <div>
+                <svg class="w-8 h-8 text-blue-400 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                </svg>
+                <p class="text-xs text-gray-400">PCI Compliant</p>
+              </div>
+              <div>
+                <svg class="w-8 h-8 text-purple-400 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <p class="text-xs text-gray-400">Verified</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="lg:col-span-3">
+          <div class="glass-effect rounded-2xl p-8">
+            <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+              <div class="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                </svg>
+              </div>
+              Payment Information
+            </h2>
+
+            <form id="payment-form" class="space-y-6">
+              <div>
+                <label class="block text-sm font-semibold text-gray-300 mb-2">Payment Amount</label>
+                <div class="relative">
+                  <span class="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 text-xl font-bold">$</span>
+                  <input type="number" id="amount" step="0.01" class="w-full pl-10 pr-4 py-4 bg-gray-800/50 border border-gray-700 rounded-xl text-white text-xl font-bold input-focus transition-all" placeholder="0.00">
+                </div>
+                <p class="text-xs text-gray-400 mt-2 flex items-center gap-1">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  <span id="amount-helper"></span>
+                </p>
+              </div>
+
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-sm font-semibold text-gray-300 mb-2">Card Number</label>
+                  <input type="text" id="card-number" maxlength="19" placeholder="4242 4242 4242 4242" class="w-full px-4 py-4 bg-gray-800/50 border border-gray-700 rounded-xl text-white card-number-format input-focus transition-all">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-sm font-semibold text-gray-300 mb-2">Expiry Date</label>
+                    <input type="text" id="card-expiry" maxlength="5" placeholder="MM/YY" class="w-full px-4 py-4 bg-gray-800/50 border border-gray-700 rounded-xl text-white input-focus transition-all">
+                  </div>
+                  <div>
+                    <label class="block text-sm font-semibold text-gray-300 mb-2">CVV</label>
+                    <input type="text" id="card-cvv" maxlength="4" placeholder="123" class="w-full px-4 py-4 bg-gray-800/50 border border-gray-700 rounded-xl text-white input-focus transition-all">
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block text-sm font-semibold text-gray-300 mb-2">Cardholder Name</label>
+                  <input type="text" id="card-name" placeholder="John Doe" class="w-full px-4 py-4 bg-gray-800/50 border border-gray-700 rounded-xl text-white input-focus transition-all">
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-sm font-semibold text-gray-300 mb-3">Or select payment method</label>
+                <div class="grid grid-cols-2 gap-3">
+                  <button type="button" onclick="selectMethod('card')" id="method-card" class="payment-method-btn px-4 py-3 bg-blue-500/20 border border-blue-500/50 rounded-xl text-white font-medium hover:bg-blue-500/30 transition-all">
+                    Credit/Debit Card
+                  </button>
+                  <button type="button" onclick="selectMethod('bank_transfer')" id="method-bank" class="payment-method-btn px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-gray-400 font-medium hover:bg-gray-700/50 transition-all">
+                    Bank Transfer
+                  </button>
+                  <button type="button" onclick="selectMethod('check')" id="method-check" class="payment-method-btn px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-gray-400 font-medium hover:bg-gray-700/50 transition-all">
+                    Check
+                  </button>
+                  <button type="button" onclick="selectMethod('cash')" id="method-cash" class="payment-method-btn px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-gray-400 font-medium hover:bg-gray-700/50 transition-all">
+                    Cash
+                  </button>
+                </div>
+              </div>
+
+              <button type="submit" id="submit-btn" class="w-full py-5 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold text-lg rounded-xl transition-all transform hover:scale-[1.02] shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none">
+                <span id="submit-text">Complete Payment</span>
+                <span id="submit-loader" class="hidden">Processing...</span>
+              </button>
+
+              <p class="text-center text-xs text-gray-500">
+                By completing this payment, you agree to our terms of service. Your payment information is encrypted and secure.
+              </p>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    const SUPABASE_URL = 'https://wzqgozbmvzvbyogbrzyx.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6cWdvemJtdnp2YnlvZ2Jyenl4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI2NDkzNzgsImV4cCI6MjA3ODIyNTM3OH0.IXMyb8A9KT3hlEXNPr1HQZeYb_Sn0Zx7RADvc9U9EbM';
+
+    let currentInvoice = null;
+    let selectedPaymentMethod = 'card';
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const invoiceId = urlParams.get('id');
+
+    if (!invoiceId) {
+      showError('No invoice ID provided');
+    } else {
+      loadInvoice(invoiceId);
+    }
+
+    async function loadInvoice(invoiceId) {
+      try {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/invoices?id=eq.${invoiceId}&select=*,customer:customers(*),invoice_items(*)`, {
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          }
+        });
+
+        if (!response.ok) throw new Error('Failed to load invoice');
+
+        const data = await response.json();
+        if (!data || data.length === 0) throw new Error('Invoice not found');
+
+        currentInvoice = data[0];
+        displayInvoice(currentInvoice);
+      } catch (error) {
+        console.error('Error:', error);
+        showError(error.message || 'Failed to load invoice details');
+      }
+    }
+
+    function displayInvoice(invoice) {
+      const remainingAmount = invoice.total_amount - (invoice.paid_amount || 0);
+      const items = invoice.invoice_items || [];
+
+      document.getElementById('loading').classList.add('hidden');
+      document.getElementById('content').classList.remove('hidden');
+
+      const statusColors = {
+        paid: 'bg-green-500/20 text-green-300 border border-green-500/50',
+        partial: 'bg-orange-500/20 text-orange-300 border border-orange-500/50',
+        sent: 'bg-blue-500/20 text-blue-300 border border-blue-500/50',
+        draft: 'bg-gray-500/20 text-gray-300 border border-gray-500/50',
+        overdue: 'bg-red-500/20 text-red-300 border border-red-500/50'
+      };
+
+      document.getElementById('status-badge').className = `px-3 py-1 rounded-full text-sm font-medium ${statusColors[invoice.status] || statusColors.draft}`;
+      document.getElementById('status-badge').textContent = invoice.status.toUpperCase();
+      document.getElementById('invoice-number').textContent = invoice.invoice_number;
+      document.getElementById('customer-name').textContent = invoice.customer?.name || 'Unknown';
+      document.getElementById('customer-email').textContent = invoice.customer?.email || '';
+      document.getElementById('invoice-date').textContent = new Date(invoice.invoice_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      document.getElementById('due-date').textContent = new Date(invoice.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+      if (items.length > 0) {
+        document.getElementById('items-section').classList.remove('hidden');
+        const itemsList = document.getElementById('items-list');
+        itemsList.innerHTML = items.map(item => `
+          <div class="flex justify-between items-start py-3 border-b border-gray-700/50">
+            <div class="flex-1">
+              <p class="text-white font-medium">${item.description}</p>
+              <p class="text-gray-400 text-sm">${item.quantity} × $${item.unit_price?.toFixed(2)}</p>
+            </div>
+            <p class="text-white font-bold">$${item.amount?.toFixed(2)}</p>
+          </div>
+        `).join('');
+      }
+
+      document.getElementById('subtotal').textContent = `$${invoice.subtotal.toFixed(2)}`;
+      document.getElementById('tax').textContent = `$${invoice.tax_amount.toFixed(2)}`;
+      document.getElementById('total').textContent = `$${invoice.total_amount.toFixed(2)}`;
+
+      if (invoice.paid_amount > 0) {
+        document.getElementById('paid-section').classList.remove('hidden');
+        document.getElementById('paid').textContent = `$${invoice.paid_amount.toFixed(2)}`;
+        document.getElementById('due').textContent = `$${remainingAmount.toFixed(2)}`;
+      }
+
+      document.getElementById('amount').value = remainingAmount.toFixed(2);
+      document.getElementById('amount-helper').textContent = `Maximum amount: $${remainingAmount.toFixed(2)}`;
+    }
+
+    window.selectMethod = function(method) {
+      selectedPaymentMethod = method;
+      document.querySelectorAll('.payment-method-btn').forEach(btn => {
+        btn.className = 'payment-method-btn px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-gray-400 font-medium hover:bg-gray-700/50 transition-all';
+      });
+      document.getElementById(`method-${method}`).className = 'payment-method-btn px-4 py-3 bg-blue-500/20 border border-blue-500/50 rounded-xl text-white font-medium hover:bg-blue-500/30 transition-all';
+    };
+
+    document.getElementById('card-number')?.addEventListener('input', (e) => {
+      let value = e.target.value.replace(/\s/g, '');
+      let formatted = value.match(/.{1,4}/g)?.join(' ') || value;
+      e.target.value = formatted;
+    });
+
+    document.getElementById('card-expiry')?.addEventListener('input', (e) => {
+      let value = e.target.value.replace(/\D/g, '');
+      if (value.length >= 2) {
+        value = value.slice(0, 2) + '/' + value.slice(2, 4);
+      }
+      e.target.value = value;
+    });
+
+    document.getElementById('card-cvv')?.addEventListener('input', (e) => {
+      e.target.value = e.target.value.replace(/\D/g, '');
+    });
+
+    document.getElementById('payment-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      await processPayment();
+    });
+
+    async function processPayment() {
+      const amount = parseFloat(document.getElementById('amount').value);
+      const remainingAmount = currentInvoice.total_amount - (currentInvoice.paid_amount || 0);
+
+      if (isNaN(amount) || amount <= 0) {
+        alert('Please enter a valid amount');
+        return;
+      }
+
+      if (amount > remainingAmount) {
+        alert(`Amount cannot exceed remaining balance of $${remainingAmount.toFixed(2)}`);
+        return;
+      }
+
+      document.getElementById('submit-btn').disabled = true;
+      document.getElementById('submit-text').classList.add('hidden');
+      document.getElementById('submit-loader').classList.remove('hidden');
+
+      try {
+        const newPaidAmount = (currentInvoice.paid_amount || 0) + amount;
+        const newStatus = newPaidAmount >= currentInvoice.total_amount ? 'paid' : 'partial';
+        const transactionId = `TXN-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+
+        const paymentResponse = await fetch(`${SUPABASE_URL}/rest/v1/payments`, {
+          method: 'POST',
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify({
+            user_id: currentInvoice.user_id,
+            invoice_id: currentInvoice.id,
+            customer_id: currentInvoice.customer_id,
+            amount: amount,
+            payment_method: selectedPaymentMethod,
+            payment_date: new Date().toISOString(),
+            status: 'completed',
+            reference_number: transactionId
+          })
+        });
+
+        if (!paymentResponse.ok) throw new Error('Payment creation failed');
+
+        const updateResponse = await fetch(`${SUPABASE_URL}/rest/v1/invoices?id=eq.${currentInvoice.id}`, {
+          method: 'PATCH',
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify({
+            paid_amount: newPaidAmount,
+            status: newStatus
+          })
+        });
+
+        if (!updateResponse.ok) throw new Error('Invoice update failed');
+
+        showSuccess(amount, transactionId, newPaidAmount < currentInvoice.total_amount ? currentInvoice.total_amount - newPaidAmount : 0);
+      } catch (error) {
+        console.error('Payment error:', error);
+        alert('Payment processing failed. Please try again.');
+        document.getElementById('submit-btn').disabled = false;
+        document.getElementById('submit-text').classList.remove('hidden');
+        document.getElementById('submit-loader').classList.add('hidden');
+      }
+    }
+
+    function showSuccess(amount, transactionId, remainingBalance) {
+      document.getElementById('content').classList.add('hidden');
+      document.getElementById('success').classList.remove('hidden');
+      document.getElementById('transaction-id').textContent = transactionId;
+      document.getElementById('paid-amount').textContent = `$${amount.toFixed(2)}`;
+
+      const methodNames = {
+        card: 'Credit/Debit Card',
+        bank_transfer: 'Bank Transfer',
+        check: 'Check',
+        cash: 'Cash'
+      };
+      document.getElementById('payment-method-display').textContent = methodNames[selectedPaymentMethod];
+
+      if (remainingBalance > 0) {
+        document.getElementById('remaining-balance').classList.remove('hidden');
+        document.getElementById('remaining-amount').textContent = `$${remainingBalance.toFixed(2)}`;
+      }
+    }
+
+    function showError(message) {
+      document.getElementById('loading').classList.add('hidden');
+      document.getElementById('error').classList.remove('hidden');
+      document.getElementById('error-message').textContent = message;
+    }
+  </script>
+</body>
+</html>
